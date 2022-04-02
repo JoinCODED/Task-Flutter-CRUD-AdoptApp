@@ -20,26 +20,50 @@ class HomePage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  GoRouter.of(context).push('/add');
+                },
                 child: const Padding(
                   padding: EdgeInsets.all(12.0),
                   child: Text("Add a new Pet"),
                 ),
               ),
             ),
-            Consumer<PetsProvider>(
-              builder: (context, petsProvider, child) => GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: MediaQuery.of(context).size.width /
-                        (MediaQuery.of(context).size.height),
-                  ),
-                  physics: const NeverScrollableScrollPhysics(), // <- Here
-                  itemCount: petsProvider.pets.length,
-                  itemBuilder: (context, index) =>
-                      PetCard(pet: petsProvider.pets[index])),
-            )
+            FutureBuilder(
+              future:
+                  Provider.of<PetsProvider>(context, listen: false).getPets(),
+              builder: (context, dataSnapshot) {
+                if (dataSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else {
+                  if (dataSnapshot.error != null) {
+                    return const Center(
+                      child: Text('An error occurred'),
+                    );
+                  } else {
+                    return Consumer<PetsProvider>(
+                      builder: (context, petsProvider, child) =>
+                          GridView.builder(
+                              shrinkWrap: true,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio:
+                                    MediaQuery.of(context).size.width /
+                                        (MediaQuery.of(context).size.height),
+                              ),
+                              physics:
+                                  const NeverScrollableScrollPhysics(), // <- Here
+                              itemCount: petsProvider.pets.length,
+                              itemBuilder: (context, index) =>
+                                  PetCard(pet: petsProvider.pets[index])),
+                    );
+                  }
+                }
+              },
+            ),
           ],
         ),
       ),
